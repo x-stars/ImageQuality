@@ -7,12 +7,12 @@ using System.Windows;
 // 有关程序集的一般信息由以下
 // 控制。更改这些特性值可修改
 // 与程序集关联的信息。
-[assembly: AssemblyTitle("ImageQuality")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyTitle("图像质量评估")]
+[assembly: AssemblyDescription("使用客观评估算法的图像质量评估工具")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("HP Inc.")]
-[assembly: AssemblyProduct("ImageQuality")]
-[assembly: AssemblyCopyright("Copyright © HP Inc. 2018")]
+[assembly: AssemblyCompany("天南十字星")]
+[assembly: AssemblyProduct("图像质量评估")]
+[assembly: AssemblyCopyright("Copyright © 天南十字星 2018")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -27,8 +27,8 @@ using System.Windows;
 //使用的是美国英语，请将 <UICulture> 设置为 en-US。  然后取消
 //对以下 NeutralResourceLanguage 特性的注释。  更新
 //以下行中的“en-US”以匹配项目文件中的 UICulture 设置。
-
 //[assembly: NeutralResourcesLanguage("en-US", UltimateResourceFallbackLocation.Satellite)]
+[assembly: NeutralResourcesLanguage("zh-CN")]
 
 
 [assembly: ThemeInfo(
