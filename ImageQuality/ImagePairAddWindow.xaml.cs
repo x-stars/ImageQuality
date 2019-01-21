@@ -79,7 +79,7 @@ namespace ImageQuality
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void ScrImageFileDataGrid_Drop(object sender, DragEventArgs e)
+        private void SrcImageFileDataGrid_Drop(object sender, DragEventArgs e)
         {
             // 取出文件路径和目录中的文件路径。
             var filePathList = new List<string>();

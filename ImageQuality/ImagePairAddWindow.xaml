@@ -17,7 +17,7 @@
             <ColumnDefinition Width="1*"/>
         </Grid.ColumnDefinitions>
         <Label Content="参考图像" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalContentAlignment="Center" Grid.Column="0"/>
-        <DataGrid Margin="10,0,10,10" Grid.Row="1" Grid.Column="0" ItemsSource="{Binding SrcImageFileList, ElementName=imagePairAddWindow}" AutoGenerateColumns="False" DragEnter="SrcImageFileDataGrid_DragEnter" Drop="ScrImageFileDataGrid_Drop" AllowDrop="True" GridLinesVisibility="None">
+        <DataGrid Margin="10,0,10,10" Grid.Row="1" Grid.Column="0" ItemsSource="{Binding SrcImageFileList, ElementName=imagePairAddWindow}" AutoGenerateColumns="False" DragEnter="SrcImageFileDataGrid_DragEnter" Drop="SrcImageFileDataGrid_Drop" AllowDrop="True" GridLinesVisibility="None">
             <DataGrid.Columns>
                 <DataGridTextColumn Binding="{Binding Name, Mode=OneWay}" ClipboardContentBinding="{x:Null}" Header="文件名"/>
                 <DataGridTextColumn Binding="{Binding Length, Mode=OneWay}" ClipboardContentBinding="{x:Null}" Header="大小"/>

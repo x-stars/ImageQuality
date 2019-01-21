@@ -10,18 +10,22 @@ namespace ImageQuality
     /// <summary>
     /// 图像对 <see cref="ImagePair"/>，用于评估图像的质量。
     /// </summary>
-    public class ImagePair : IEquatable<ImagePair>
+    public class ImagePair : IDisposable
     {
+        /// <summary>
+        /// 指示此实例是否已经被释放。
+        /// </summary>
+        private bool isDisposed = false;
         /// <summary>
         /// 图像采用的统一像素格式。
         /// </summary>
-        private readonly PixelFormat imagePixelFormat;
+        private readonly PixelFormat pxFormat;
         /// <summary>
-        /// <see cref="ImagePair.imagePixelFormat"/> 对应的通道数量。
+        /// <see cref="ImagePair.pxFormat"/> 对应的通道数量。
         /// </summary>
         private readonly int channel;
         /// <summary>
-        /// <see cref="ImagePair.imagePixelFormat"/> 对应的单通道峰值。
+        /// <see cref="ImagePair.pxFormat"/> 对应的单通道峰值。
         /// </summary>
         private readonly double peak;
         /// <summary>
@@ -48,7 +52,7 @@ namespace ImageQuality
         /// <param name="filename2">第二个图像的文件名。</param>
         public ImagePair(string filename1, string filename2)
         {
-            this.imagePixelFormat = PixelFormat.Format32bppArgb;
+            this.pxFormat = PixelFormat.Format32bppArgb;
             this.channel = 4;
             this.peak = 255D;
             
@@ -67,10 +71,12 @@ namespace ImageQuality
         /// 用于对比的第一个图像文件。
         /// </summary>
         public FileInfo ImageFile1 { get; }
+
         /// <summary>
         /// 用于对比的第二个图像文件。
         /// </summary>
         public FileInfo ImageFile2 { get; }
+
         /// <summary>
         /// 用于对比的第一个图像。
         /// </summary>
@@ -86,6 +92,7 @@ namespace ImageQuality
                 return this.image1;
             }
         }
+
         /// <summary>
         /// 用于对比的第二个图像。
         /// </summary>
@@ -101,38 +108,25 @@ namespace ImageQuality
                 return this.image2;
             }
         }
+
         /// <summary>
         /// 当前图像对的 PSNR。
         /// </summary>
         public double Psnr => this.psnr ?? this.CalcPsnr();
+
         /// <summary>
         /// 当前图像对的 SSIM。
         /// </summary>
         public double Ssim => this.ssim ?? this.CalcSsim();
 
         /// <summary>
-        /// 返回一个值，该值指示此实例和指定的 <see cref="ImagePair"/> 对象是否相等。
+        /// 释放此实例占用的资源。
         /// </summary>
-        /// <param name="other">要与此实例比较的 <see cref="ImagePair"/> 对象。</param>
-        /// <returns>
-        /// 如果此实例和 <paramref name="other"/> 中包含的图像对的文件路径相同，
-        /// 则为 <see langword="true"/>；否则为 <see langword="false"/>。
-        /// </returns>
-        public bool Equals(ImagePair other) =>
-            !(other is null) &&
-            EqualityComparer<string>.Default.Equals(this.ImageFile1.FullName, other.ImageFile1.FullName) &&
-            EqualityComparer<string>.Default.Equals(this.ImageFile2.FullName, other.ImageFile2.FullName);
-
-        /// <summary>
-        /// 返回一个值，该值指示此实例和指定的对象是否相等。
-        /// </summary>
-        /// <param name="obj">要与此实例比较的对象。</param>
-        /// <returns>
-        /// 如果 <paramref name="obj"/> 是 <see cref="ImagePair"/> 的实例，且包含的图像对的文件路径相同，
-        /// 则为 <see langword="true"/>；否则为 <see langword="false"/>。
-        /// </returns>
-        public override bool Equals(object obj) =>
-            this.Equals(obj as ImagePair);
+        public void Dispose()
+        {
+            this.Dispose(true);
+            GC.SuppressFinalize(this);
+        }
 
         /// <summary>
         /// 返回此实例的哈希代码。
@@ -144,6 +138,32 @@ namespace ImageQuality
             hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(this.ImageFile1.FullName);
             hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(this.ImageFile2.FullName);
             return hashCode;
+        }
+
+        /// <summary>
+        /// 释放此实例占用的非托管资源，并根据指示释放托管资源。
+        /// </summary>
+        /// <param name="disposing">指示是否释放托管资源。</param>
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!this.isDisposed)
+            {
+                if (disposing)
+                {
+                    if (!(this.image1 is null))
+                    {
+                        this.image1.Dispose();
+                        this.image1 = null;
+                    }
+                    if (!(this.image2 is null))
+                    {
+                        this.image2.Dispose();
+                        this.image2 = null;
+                    }
+                }
+
+                this.isDisposed = true;
+            }
         }
 
         /// <summary>
@@ -163,10 +183,10 @@ namespace ImageQuality
 
             // 固定像素到内存。
             var image1Data = image1.LockBits(
-                new Rectangle(Point.Empty, size), ImageLockMode.ReadOnly, this.imagePixelFormat);
+                new Rectangle(Point.Empty, size), ImageLockMode.ReadOnly, this.pxFormat);
             byte* image1ChPtr = (byte*)image1Data.Scan0.ToPointer();
             var image2Data = image2.LockBits(
-                new Rectangle(Point.Empty, size), ImageLockMode.ReadOnly, this.imagePixelFormat);
+                new Rectangle(Point.Empty, size), ImageLockMode.ReadOnly, this.pxFormat);
             byte* image2ChPtr = (byte*)image2Data.Scan0.ToPointer();
 
             // 计算 PSNR。
@@ -211,10 +231,10 @@ namespace ImageQuality
 
             // 固定像素到内存。
             var image1Data = image1.LockBits(
-                new Rectangle(Point.Empty, size), ImageLockMode.ReadOnly, this.imagePixelFormat);
+                new Rectangle(Point.Empty, size), ImageLockMode.ReadOnly, this.pxFormat);
             byte* image1ChPtr = (byte*)image1Data.Scan0.ToPointer();
             var image2Data = image2.LockBits(
-                new Rectangle(Point.Empty, size), ImageLockMode.ReadOnly, this.imagePixelFormat);
+                new Rectangle(Point.Empty, size), ImageLockMode.ReadOnly, this.pxFormat);
             byte* image2ChPtr = (byte*)image2Data.Scan0.ToPointer();
 
             // 设定参数。
@@ -281,28 +301,5 @@ namespace ImageQuality
             this.ssim = ssim;
             return ssim;
         }
-
-        /// <summary>
-        /// 指示两 <see cref="ImagePair"/> 对象是否相等。
-        /// </summary>
-        /// <param name="pair1">第一个对象。</param>
-        /// <param name="pair2">第二个对象。</param>
-        /// <returns>
-        /// 如果 <paramref name="pair1"/> 和 <paramref name="pair2"/> 中包含的图像对的文件路径相同，
-        /// 则为 <see langword="true"/>；否则为 <see langword="false"/>。
-        /// </returns>
-        public static bool operator ==(ImagePair pair1, ImagePair pair2) =>
-            EqualityComparer<ImagePair>.Default.Equals(pair1, pair2);
-        /// <summary>
-        /// 指示两 <see cref="ImagePair"/> 对象是否不等。
-        /// </summary>
-        /// <param name="pair1">第一个对象。</param>
-        /// <param name="pair2">第二个对象。</param>
-        /// <returns>
-        /// 如果 <paramref name="pair1"/> 和 <paramref name="pair2"/> 中包含的图像对的文件路径不同，
-        /// 则为 <see langword="true"/>；否则为 <see langword="false"/>。
-        /// </returns>
-        public static bool operator !=(ImagePair pair1, ImagePair pair2) =>
-            !(pair1 == pair2);
     }
 }
