@@ -1,9 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
-using System.Linq;
 
 namespace ImageQuality
 {
@@ -15,109 +13,95 @@ namespace ImageQuality
         /// <summary>
         /// 指示此实例是否已经被释放。
         /// </summary>
-        private bool isDisposed = false;
+        private bool IsDisposed = false;
         /// <summary>
         /// 图像采用的统一像素格式。
         /// </summary>
-        private readonly PixelFormat pxFormat;
+        private readonly PixelFormat PixelFormat;
         /// <summary>
-        /// <see cref="ImagePair.pxFormat"/> 对应的通道数量。
+        /// <see cref="ImagePair.PixelFormat"/> 对应的通道数量。
         /// </summary>
-        private readonly int channel;
+        private readonly int Count;
         /// <summary>
-        /// <see cref="ImagePair.pxFormat"/> 对应的单通道峰值。
+        /// <see cref="ImagePair.PixelFormat"/> 对应的单通道峰值。
         /// </summary>
-        private readonly double peak;
+        private readonly double Peak;
+        /// <summary>
+        /// 用于对比的第一个图像文件。
+        /// </summary>
+        private readonly Lazy<FileInfo> LazyFile1;
+        /// <summary>
+        /// 用于对比的第二个图像文件。
+        /// </summary>
+        private readonly Lazy<FileInfo> LazyFile2;
         /// <summary>
         /// 用于对比的第一个图像。
         /// </summary>
-        private Bitmap image1;
+        private readonly Lazy<Bitmap> LazyImage1;
         /// <summary>
         /// 用于对比的第二个图像。
         /// </summary>
-        private Bitmap image2;
+        private readonly Lazy<Bitmap> LazyImage2;
         /// <summary>
         /// 当前图像对的 PSNR。
         /// </summary>
-        private double? psnr;
+        private readonly Lazy<double> LazyPsnr;
         /// <summary>
         /// 当前图像对的 SSIM。
         /// </summary>
-        private double? ssim;
+        private readonly Lazy<double> LazySsim;
 
         /// <summary>
         /// 使用图像文件名初始化 <see cref="ImagePair"/> 的新实例。
         /// </summary>
-        /// <param name="filename1">第一个图像的文件名。</param>
-        /// <param name="filename2">第二个图像的文件名。</param>
-        public ImagePair(string filename1, string filename2)
+        /// <param name="path1">第一个图像的文件名。</param>
+        /// <param name="path2">第二个图像的文件名。</param>
+        public ImagePair(string path1, string path2)
         {
-            this.pxFormat = PixelFormat.Format32bppArgb;
-            this.channel = 4;
-            this.peak = 255D;
-            
-            try { this.ImageFile1 = new FileInfo(filename1); }
-            catch (Exception) { this.ImageFile1 = new FileInfo(@"\"); }
-            try { this.ImageFile2 = new FileInfo(filename2); }
-            catch (Exception) { this.ImageFile2 = new FileInfo(@"\"); }
-            this.image1 = null;
-            this.image2 = null;
+            this.PixelFormat = PixelFormat.Format32bppArgb;
+            this.Count = 4;
+            this.Peak = 255D;
 
-            this.psnr = null;
-            this.ssim = null;
+            this.LazyFile1 = new Lazy<FileInfo>(() => this.TryLoadFile(path1));
+            this.LazyFile2 = new Lazy<FileInfo>(() => this.TryLoadFile(path2));
+            this.LazyImage1 = new Lazy<Bitmap>(
+                () => this.TryLoadImage(this.File1.FullName));
+            this.LazyImage2 = new Lazy<Bitmap>(
+                () => this.TryLoadImage(this.File2.FullName));
+
+            this.LazyPsnr = new Lazy<double>(this.CalcPsnr);
+            this.LazySsim = new Lazy<double>(this.CalcSsim);
         }
 
+        /// <summary>
+        /// 当前实例的 <see cref="IDisposable"/> 检查对象。
+        /// </summary>
+        private ImagePair Disposable => this.IsDisposed ?
+            throw new ObjectDisposedException(this.GetType().ToString()) : this;
         /// <summary>
         /// 用于对比的第一个图像文件。
         /// </summary>
-        public FileInfo ImageFile1 { get; }
-
+        public FileInfo File1 => this.Disposable.LazyFile1.Value;
         /// <summary>
         /// 用于对比的第二个图像文件。
         /// </summary>
-        public FileInfo ImageFile2 { get; }
-
+        public FileInfo File2 => this.Disposable.LazyFile2.Value;
         /// <summary>
         /// 用于对比的第一个图像。
         /// </summary>
-        public Bitmap Image1
-        {
-            get
-            {
-                if (this.image1 is null)
-                {
-                    try { this.image1 = new Bitmap(this.ImageFile1.FullName); }
-                    catch (Exception) { this.image1 = new Bitmap(1, 1); }
-                }
-                return this.image1;
-            }
-        }
-
+        public Bitmap Image1 => this.Disposable.LazyImage1.Value;
         /// <summary>
         /// 用于对比的第二个图像。
         /// </summary>
-        public Bitmap Image2
-        {
-            get
-            {
-                if (this.image2 is null)
-                {
-                    try { this.image2 = new Bitmap(this.ImageFile2.FullName); }
-                    catch (Exception) { this.image2 = new Bitmap(1, 1); }
-                }
-                return this.image2;
-            }
-        }
-
+        public Bitmap Image2 => this.Disposable.LazyImage2.Value;
         /// <summary>
         /// 当前图像对的 PSNR。
         /// </summary>
-        public double Psnr => this.psnr ?? this.CalcPsnr();
-
+        public double Psnr => this.Disposable.LazyPsnr.Value;
         /// <summary>
         /// 当前图像对的 SSIM。
         /// </summary>
-        public double Ssim => this.ssim ?? this.CalcSsim();
+        public double Ssim => this.Disposable.LazySsim.Value;
 
         /// <summary>
         /// 释放此实例占用的资源。
@@ -129,41 +113,43 @@ namespace ImageQuality
         }
 
         /// <summary>
-        /// 返回此实例的哈希代码。
-        /// </summary>
-        /// <returns>32 位有符号整数哈希代码。</returns>
-        public override int GetHashCode()
-        {
-            var hashCode = 1182647313;
-            hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(this.ImageFile1.FullName);
-            hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(this.ImageFile2.FullName);
-            return hashCode;
-        }
-
-        /// <summary>
         /// 释放此实例占用的非托管资源，并根据指示释放托管资源。
         /// </summary>
         /// <param name="disposing">指示是否释放托管资源。</param>
         protected virtual void Dispose(bool disposing)
         {
-            if (!this.isDisposed)
+            if (!this.IsDisposed)
             {
                 if (disposing)
                 {
-                    if (!(this.image1 is null))
-                    {
-                        this.image1.Dispose();
-                        this.image1 = null;
-                    }
-                    if (!(this.image2 is null))
-                    {
-                        this.image2.Dispose();
-                        this.image2 = null;
-                    }
+                    this.Image1?.Dispose();
+                    this.Image2?.Dispose();
                 }
 
-                this.isDisposed = true;
+                this.IsDisposed = true;
             }
+        }
+
+        /// <summary>
+        /// 尝试从文件路径加载文件信息。
+        /// </summary>
+        /// <param name="path">要加载的文件的路径。</param>
+        /// <returns>加载完成的文件信息，若无法成功加载，则加载当前目录。</returns>
+        private FileInfo TryLoadFile(string path)
+        {
+            try { return new FileInfo(path); }
+            catch (Exception) { return new FileInfo("."); }
+        }
+
+        /// <summary>
+        /// 尝试从文件路径加载位图对象。
+        /// </summary>
+        /// <param name="path">要加载的文件的路径。</param>
+        /// <returns>加载完成的位图，若无法成功加载，则返回一个 1 * 1 的位图。</returns>
+        private Bitmap TryLoadImage(string path)
+        {
+            try { return new Bitmap(path); }
+            catch (Exception) { return new Bitmap(1, 1); }
         }
 
         /// <summary>
@@ -183,10 +169,10 @@ namespace ImageQuality
 
             // 固定像素到内存。
             var image1Data = image1.LockBits(
-                new Rectangle(Point.Empty, size), ImageLockMode.ReadOnly, this.pxFormat);
+                new Rectangle(Point.Empty, size), ImageLockMode.ReadOnly, this.PixelFormat);
             byte* image1ChPtr = (byte*)image1Data.Scan0.ToPointer();
             var image2Data = image2.LockBits(
-                new Rectangle(Point.Empty, size), ImageLockMode.ReadOnly, this.pxFormat);
+                new Rectangle(Point.Empty, size), ImageLockMode.ReadOnly, this.PixelFormat);
             byte* image2ChPtr = (byte*)image2Data.Scan0.ToPointer();
 
             // 计算 PSNR。
@@ -195,22 +181,20 @@ namespace ImageQuality
             {
                 for (int w = 0; w < size.Width; w++)
                 {
-                    for (int ch = 0; ch < this.channel; ch++)
+                    for (int ch = 0; ch < this.Count; ch++)
                     {
                         double e = (double)*(image1ChPtr++) - *(image2ChPtr++);
                         se += e * e;
                     }
                 }
             }
-            double mse = se / (size.Width * size.Height * this.channel);
-            double psnr = 10 * Math.Log10((this.peak * this.peak) / mse);
+            double mse = se / (size.Width * size.Height * this.Count);
+            double psnr = 10 * Math.Log10((this.Peak * this.Peak) / mse);
 
             // 从内存解锁像素。
             image1.UnlockBits(image1Data);
             image2.UnlockBits(image2Data);
 
-            // 返回结果。
-            this.psnr = psnr;
             return psnr;
         }
 
@@ -231,17 +215,17 @@ namespace ImageQuality
 
             // 固定像素到内存。
             var image1Data = image1.LockBits(
-                new Rectangle(Point.Empty, size), ImageLockMode.ReadOnly, this.pxFormat);
+                new Rectangle(Point.Empty, size), ImageLockMode.ReadOnly, this.PixelFormat);
             byte* image1ChPtr = (byte*)image1Data.Scan0.ToPointer();
             var image2Data = image2.LockBits(
-                new Rectangle(Point.Empty, size), ImageLockMode.ReadOnly, this.pxFormat);
+                new Rectangle(Point.Empty, size), ImageLockMode.ReadOnly, this.PixelFormat);
             byte* image2ChPtr = (byte*)image2Data.Scan0.ToPointer();
 
             // 设定参数。
             double k1 = 0.01;
             double k2 = 0.03;
-            double c1 = (k1 * this.peak) * (k1 * this.peak);
-            double c2 = (k2 * this.peak) * (k2 * this.peak);
+            double c1 = (k1 * this.Peak) * (k1 * this.Peak);
+            double c2 = (k2 * this.Peak) * (k2 * this.Peak);
             double c3 = c2 / 2;
 
             // 计算平均值。
@@ -251,15 +235,15 @@ namespace ImageQuality
             {
                 for (int w = 0; w < size.Width; w++)
                 {
-                    for (int ch = 0; ch < this.channel; ch++)
+                    for (int ch = 0; ch < this.Count; ch++)
                     {
                         valSum1 += *(image1ChPtr++);
                         valSum2 += *(image2ChPtr++);
                     }
                 }
             }
-            double miu1 = valSum1 / (size.Width * size.Height * this.channel);
-            double miu2 = valSum2 / (size.Width * size.Height * this.channel);
+            double miu1 = valSum1 / (size.Width * size.Height * this.Count);
+            double miu2 = valSum2 / (size.Width * size.Height * this.Count);
 
             // 重设指针。
             image1ChPtr = (byte*)image1Data.Scan0.ToPointer();
@@ -273,7 +257,7 @@ namespace ImageQuality
             {
                 for (int w = 0; w < size.Width; w++)
                 {
-                    for (int ch = 0; ch < this.channel; ch++)
+                    for (int ch = 0; ch < this.Count; ch++)
                     {
                         double e1 = *(image1ChPtr++) - miu1;
                         double e2 = *(image2ChPtr++) - miu2;
@@ -283,9 +267,9 @@ namespace ImageQuality
                     }
                 }
             }
-            double sigma1 = Math.Sqrt(varSum1 / (size.Width * size.Height * this.channel - 1));
-            double sigma2 = Math.Sqrt(varSum2 / (size.Width * size.Height * this.channel - 1));
-            double sigma12 = covSum / (size.Width * size.Height * this.channel - 1);
+            double sigma1 = Math.Sqrt(varSum1 / (size.Width * size.Height * this.Count - 1));
+            double sigma2 = Math.Sqrt(varSum2 / (size.Width * size.Height * this.Count - 1));
+            double sigma12 = covSum / (size.Width * size.Height * this.Count - 1);
 
             // 计算 SSIM。
             double l = (2 * miu1 * miu2 + c1) / (miu1 * miu1 + miu2 * miu2 + c1);
@@ -297,8 +281,6 @@ namespace ImageQuality
             image1.UnlockBits(image1Data);
             image2.UnlockBits(image2Data);
 
-            // 返回结果。
-            this.ssim = ssim;
             return ssim;
         }
     }

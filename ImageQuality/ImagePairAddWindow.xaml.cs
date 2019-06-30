@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Drawing;
 using System.IO;
-using System.Linq;
 using System.Windows;
 
 namespace ImageQuality
@@ -18,26 +16,24 @@ namespace ImageQuality
         /// </summary>
         public ImagePairAddWindow()
         {
-            this.SrcImageFileList = new BindingList<FileInfo>();
-            this.CmpImageFileList = new BindingList<FileInfo>();
+            this.SourceFiles = new BindingList<FileInfo>();
+            this.CompareFiles = new BindingList<FileInfo>();
             this.InitializeComponent();
         }
 
         /// <summary>
         /// 参考图像文件列表。
         /// </summary>
-        public IList<FileInfo> SrcImageFileList { get; }
-
+        public IList<FileInfo> SourceFiles { get; }
         /// <summary>
         /// 对比图像文件列表。
         /// </summary>
-        public IList<FileInfo> CmpImageFileList { get; }
+        public IList<FileInfo> CompareFiles { get; }
 
         /// <summary>
         /// 打开一个窗口，并返回而不等待新打开的窗口关闭。
         /// 不支持此操作，请用 <see cref="Window.ShowDialog()"/> 代替。
         /// </summary>
-        [EditorBrowsable(EditorBrowsableState.Never)]
         public new void Show() =>
             throw new NotSupportedException("Use ShowDialog() instead.");
 
@@ -68,7 +64,7 @@ namespace ImageQuality
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void SrcImageFileDataGrid_DragEnter(object sender, DragEventArgs e)
+        private void SourceFileDataGrid_DragEnter(object sender, DragEventArgs e)
         {
             if (!(e.Data.GetData(DataFormats.FileDrop) is null))
             { e.Effects = DragDropEffects.Copy; }
@@ -79,7 +75,7 @@ namespace ImageQuality
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void SrcImageFileDataGrid_Drop(object sender, DragEventArgs e)
+        private void SourceFileDataGrid_Drop(object sender, DragEventArgs e)
         {
             // 取出文件路径和目录中的文件路径。
             var filePathList = new List<string>();
@@ -96,7 +92,7 @@ namespace ImageQuality
 
             // 添加到参考文件列表。
             foreach (string filePath in filePathList)
-            { this.SrcImageFileList.Add(new FileInfo(filePath)); }
+            { this.SourceFiles.Add(new FileInfo(filePath)); }
         }
 
         /// <summary>
@@ -104,7 +100,7 @@ namespace ImageQuality
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void CmpImageFileDataGrid_DragEnter(object sender, DragEventArgs e)
+        private void CompareFileDataGrid_DragEnter(object sender, DragEventArgs e)
         {
             if (!(e.Data.GetData(DataFormats.FileDrop) is null))
             { e.Effects = DragDropEffects.Copy; }
@@ -115,7 +111,7 @@ namespace ImageQuality
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void CmpImageFileDataGrid_Drop(object sender, DragEventArgs e)
+        private void CompareFileDataGrid_Drop(object sender, DragEventArgs e)
         {
             // 取出文件路径和目录中的文件路径。
             var filePathList = new List<string>();
@@ -132,7 +128,7 @@ namespace ImageQuality
 
             // 添加到对比文件列表。
             foreach (string filePath in filePathList)
-            { this.CmpImageFileList.Add(new FileInfo(filePath)); }
+            { this.CompareFiles.Add(new FileInfo(filePath)); }
         }
     }
 }
