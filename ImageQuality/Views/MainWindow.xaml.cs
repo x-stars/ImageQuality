@@ -1,7 +1,6 @@
 ﻿using System.Collections.Specialized;
 using System.Windows;
 using System.Windows.Input;
-using XstarS.ImageQuality.ViewModels;
 
 namespace XstarS.ImageQuality.Views
 {

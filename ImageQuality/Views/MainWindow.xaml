@@ -5,6 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:XstarS.ImageQuality.Views"
         mc:Ignorable="d"
+        d:DataContext="{d:DesignInstance local:MainWindowModel}"
         Width="600" Height="450" MinWidth="600" MinHeight="300"
         Title="图像质量评估">
     <Grid>

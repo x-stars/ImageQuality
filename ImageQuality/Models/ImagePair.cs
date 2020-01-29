@@ -28,7 +28,7 @@ namespace XstarS.ImageQuality.Models
         /// <summary>
         /// 指示当前实例占用的资源是否已经被释放。
         /// </summary>
-        private bool IsDisposed = false;
+        private volatile bool IsDisposed = false;
 
         /// <summary>
         /// <see cref="ImagePair.SourceBitmap"/> 的缓存值。

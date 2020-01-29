@@ -25,10 +25,10 @@ namespace XstarS.ImageQuality.Views
         /// </summary>
         public ImagePairAddWindow()
         {
-            this.DataContext = this;
-            this.InitializeComponent();
             this.SourceFiles = new ObservableCollection<FileInfo>();
             this.CompareFiles = new ObservableCollection<FileInfo>();
+            this.DataContext = this;
+            this.InitializeComponent();
         }
 
         /// <summary>
@@ -73,9 +73,9 @@ namespace XstarS.ImageQuality.Views
             var commandBindings = new[]
             {
                 new CommandBinding(ImagePairAddWindow.DialogOK,
-                    (sender, e) => ((ImagePairAddWindow)sender).CloseWithDialogTrue()),
+                    (sender, e) => ((ImagePairAddWindow)sender).CloseDialog(true)),
                 new CommandBinding(ImagePairAddWindow.DialogCancel,
-                    (sender, e) => ((ImagePairAddWindow)sender).CloseWithDialogFalse()),
+                    (sender, e) => ((ImagePairAddWindow)sender).CloseDialog(false)),
             };
 
             foreach (var commandBinding in commandBindings)
@@ -85,20 +85,12 @@ namespace XstarS.ImageQuality.Views
         }
 
         /// <summary>
-        /// 关闭当前窗口，并设定对话框结果为 <see langword="true"/>。
+        /// 关闭当前窗口，并设定对话框结果指定值。
         /// </summary>
-        public void CloseWithDialogTrue()
+        /// <param name="result">要设定的对话框结果。</param>
+        public void CloseDialog(bool? result)
         {
-            this.DialogResult = true;
-            this.Close();
-        }
-
-        /// <summary>
-        /// 关闭当前窗口，并设定对话框结果为 <see langword="false"/>。
-        /// </summary>
-        public void CloseWithDialogFalse()
-        {
-            this.DialogResult = false;
+            this.DialogResult = result;
             this.Close();
         }
 

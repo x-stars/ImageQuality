@@ -5,7 +5,7 @@ using System.IO;
 using System.Text;
 using XstarS.ImageQuality.Models;
 
-namespace XstarS.ImageQuality.ViewModels
+namespace XstarS.ImageQuality.Views
 {
     /// <summary>
     /// 表示主窗口的数据逻辑的模型。
