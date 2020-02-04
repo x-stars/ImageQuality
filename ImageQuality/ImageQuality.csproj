@@ -61,6 +61,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Views\ImagePairAddWindowModel.cs" />
     <Compile Include="Views\MainWindowModel.cs" />
     <Compile Include="Views\ImagePairAddWindow.xaml.cs">
       <DependentUpon>ImagePairAddWindow.xaml</DependentUpon>
@@ -72,6 +73,7 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Helpers\PathHelper.cs" />
     <Page Include="Views\ImagePairAddWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

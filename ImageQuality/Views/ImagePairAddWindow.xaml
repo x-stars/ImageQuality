@@ -5,8 +5,9 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:XstarS.ImageQuality.Views"
         mc:Ignorable="d"
+        d:DataContext="{d:DesignInstance local:ImagePairAddWindowModel, IsDesignTimeCreatable=True}"
         Width="480" Height="360" ResizeMode="NoResize" WindowStartupLocation="CenterOwner"
-        Title="添加图像对" >
+        Title="添加图像对">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="1*"/>

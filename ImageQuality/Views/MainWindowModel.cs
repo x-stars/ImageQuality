@@ -1,14 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.IO;
 using System.Text;
 using XstarS.ImageQuality.Models;
 
 namespace XstarS.ImageQuality.Views
 {
     /// <summary>
-    /// 表示主窗口的数据逻辑的模型。
+    /// 表示 <see cref="MainWindow"/> 的数据模型。
     /// </summary>
     public class MainWindowModel
     {
@@ -31,30 +29,23 @@ namespace XstarS.ImageQuality.Views
         public bool HasImagePairs => this.ImagePairs.Count != 0;
 
         /// <summary>
-        /// 向 <see cref="ImagePair"/> 集合中添加多个指定文件路径定义的新项目。
+        /// 向 <see cref="ImagePair"/> 集合中添加指定的新项目。
         /// </summary>
-        /// <param name="sourcePaths">参考图像文件的路径列表。</param>
-        /// <param name="comparePaths">对比图像文件的路径列表。</param>
-        public void AddImagePairs(IList<string> sourcePaths, IList<string> comparePaths)
+        /// <param name="imagePair">要添加到集合的 <see cref="ImagePair"/>。</param>
+        public void AddImagePair(ImagePair imagePair)
         {
-            var length = Math.Min(sourcePaths.Count, comparePaths.Count);
-            for (int i = 0; i < length; i++)
-            {
-                this.ImagePairs.Add(new ImagePair(sourcePaths[i], comparePaths[i]));
-            }
+            this.ImagePairs.Add(imagePair);
         }
 
         /// <summary>
-        /// 向 <see cref="ImagePair"/> 集合中添加多个指定文件信息定义的新项目。
+        /// 向 <see cref="ImagePair"/> 集合中添加多个指定的新项目。
         /// </summary>
-        /// <param name="sourceFiles">参考图像的文件信息列表。</param>
-        /// <param name="compareFiles">对比图像的文件信息列表。</param>
-        public void AddImagePairs(IList<FileInfo> sourceFiles, IList<FileInfo> compareFiles)
+        /// <param name="imagePairs">要添加到集合的多个 <see cref="ImagePair"/>。</param>
+        public void AddImagePairs(IEnumerable<ImagePair> imagePairs)
         {
-            var length = Math.Min(sourceFiles.Count, compareFiles.Count);
-            for (int i = 0; i < length; i++)
+            foreach (var imagePair in imagePairs)
             {
-                this.ImagePairs.Add(new ImagePair(sourceFiles[i], compareFiles[i]));
+                this.ImagePairs.Add(imagePair);
             }
         }
 
@@ -98,18 +89,18 @@ namespace XstarS.ImageQuality.Views
         /// <returns>导出的 CSV 文本。</returns>
         public string ExportResultToCsv()
         {
+            var imagePairs = this.ImagePairs;
             var csv = new StringBuilder();
-            var header = "No,Source,Comapre,PSNR,SSIM";
+            var header = "Source,Compare,PSNR,SSIM";
             csv.AppendLine(header);
-            for (int i = 0; i < this.ImagePairs.Count; i++)
+            foreach (var imagePair in imagePairs)
             {
                 var line = string.Join(",", new[]
                 {
-                    (i + 1).ToString(),
-                    $@"""{this.ImagePairs[i].SourceFile.Name}""",
-                    $@"""{this.ImagePairs[i].CompareFile.Name}""",
-                    this.ImagePairs[i].Psnr.ToString(),
-                    this.ImagePairs[i].Ssim.ToString(),
+                    $@"""{imagePair.SourceFile.Name}""",
+                    $@"""{imagePair.CompareFile.Name}""",
+                    imagePair.Psnr.ToString(),
+                    imagePair.Ssim.ToString(),
                 });
                 csv.AppendLine(line);
             }

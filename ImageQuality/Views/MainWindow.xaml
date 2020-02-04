@@ -5,13 +5,14 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:XstarS.ImageQuality.Views"
         mc:Ignorable="d"
-        d:DataContext="{d:DesignInstance local:MainWindowModel}"
+        d:DataContext="{d:DesignInstance local:MainWindowModel, IsDesignTimeCreatable=True}"
         Width="600" Height="450" MinWidth="600" MinHeight="300"
         Title="图像质量评估">
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="300"/>
-            <ColumnDefinition Width="1*"/>
+            <ColumnDefinition Width="1*" MinWidth="200"/>
+            <ColumnDefinition Width="5"/>
+            <ColumnDefinition Width="1*" MinWidth="200"/>
         </Grid.ColumnDefinitions>
         <Grid Grid.Column="0" Margin="2.5">
             <Grid.RowDefinitions>
@@ -21,7 +22,7 @@
             <DataGrid x:Name="ImagePairDataGrid" x:FieldModifier="private"
                       Margin="2.5" ItemsSource="{Binding ImagePairs}"
                       AutoGenerateColumns="False" CanUserResizeRows="False"
-                      IsReadOnly="True" GridLinesVisibility="None">
+                      IsReadOnly="True" GridLinesVisibility="None" SelectionMode="Single">
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="参考图像" Binding="{Binding SourceFile.Name}"/>
                     <DataGridTextColumn Header="对比图像" Binding="{Binding CompareFile.Name}"/>
@@ -45,7 +46,8 @@
                         Command="{x:Static local:MainWindow.CopyImagePairsResultCommand}"/>
             </Grid>
         </Grid>
-        <Grid Grid.Column="1" Margin="2.5"
+        <GridSplitter Grid.Column="1" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+        <Grid Grid.Column="2" Margin="2.5"
               DataContext="{Binding SelectedItem, ElementName=ImagePairDataGrid}">
             <Grid.RowDefinitions>
                 <RowDefinition Height="30"/>

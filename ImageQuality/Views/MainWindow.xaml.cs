@@ -5,7 +5,7 @@ using System.Windows.Input;
 namespace XstarS.ImageQuality.Views
 {
     /// <summary>
-    /// MainWindow.xaml 的交互逻辑。
+    /// MainWindow.xaml 的交互逻辑
     /// </summary>
     public partial class MainWindow : Window
     {
@@ -28,7 +28,7 @@ namespace XstarS.ImageQuality.Views
         }
 
         /// <summary>
-        /// 获取当前窗口的数据逻辑模型。
+        /// 获取当前窗口的数据模型。
         /// </summary>
         public MainWindowModel Model => (MainWindowModel)this.DataContext;
 
@@ -108,7 +108,7 @@ namespace XstarS.ImageQuality.Views
             var addWindow = new ImagePairAddWindow() { Owner = this };
             if (addWindow.ShowDialog() == true)
             {
-                this.Model.AddImagePairs(addWindow.SourceFiles, addWindow.CompareFiles);
+                this.Model.AddImagePairs(addWindow.GetImagePairs());
             }
         }
 

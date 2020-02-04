@@ -1,14 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.IO;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Input;
+using XstarS.ImageQuality.Models;
 
 namespace XstarS.ImageQuality.Views
 {
     /// <summary>
-    /// ImagePairAddWindow.xaml 的交互逻辑。
+    /// ImagePairAddWindow.xaml 的交互逻辑
     /// </summary>
     public partial class ImagePairAddWindow : Window
     {
@@ -25,21 +22,14 @@ namespace XstarS.ImageQuality.Views
         /// </summary>
         public ImagePairAddWindow()
         {
-            this.SourceFiles = new ObservableCollection<FileInfo>();
-            this.CompareFiles = new ObservableCollection<FileInfo>();
-            this.DataContext = this;
+            this.DataContext = new ImagePairAddWindowModel();
             this.InitializeComponent();
         }
 
         /// <summary>
-        /// 获取当前窗口包含的参考图像文件的集合。
+        /// 获取当前窗口的数据模型。
         /// </summary>
-        public ObservableCollection<FileInfo> SourceFiles { get; }
-
-        /// <summary>
-        /// 获取当前窗口包含的对比图像文件的集合。
-        /// </summary>
-        public ObservableCollection<FileInfo> CompareFiles { get; }
+        public ImagePairAddWindowModel Model => (ImagePairAddWindowModel)this.DataContext;
 
         /// <summary>
         /// 获取表示“对话框确定”的命令的值。
@@ -95,6 +85,12 @@ namespace XstarS.ImageQuality.Views
         }
 
         /// <summary>
+        /// 获取当前窗口包含的图像文件对应的 <see cref="ImagePair"/> 的数组。
+        /// </summary>
+        /// <returns>当前窗口包含的图像文件对应的 <see cref="ImagePair"/> 的数组。</returns>
+        public ImagePair[] GetImagePairs() => this.Model.ToImagePairs();
+
+        /// <summary>
         /// 参考图像文件数据表拖放进入的事件处理。
         /// </summary>
         /// <param name="sender">事件源。</param>
@@ -116,7 +112,7 @@ namespace XstarS.ImageQuality.Views
         {
             if (e.Data.GetData(DataFormats.FileDrop) is string[] paths)
             {
-                this.AddFilesFromPaths(this.SourceFiles, paths);
+                this.Model.AddSourceFiles(paths);
             }
         }
 
@@ -142,36 +138,7 @@ namespace XstarS.ImageQuality.Views
         {
             if (e.Data.GetData(DataFormats.FileDrop) is string[] paths)
             {
-                this.AddFilesFromPaths(this.CompareFiles, paths);
-            }
-        }
-
-        /// <summary>
-        /// 根据指定文件或目录的路径，向指定的文件信息列表添加新项目。
-        /// </summary>
-        /// <param name="files">要添加新项目的文件信息列表。</param>
-        /// <param name="paths">要添加的文件或目录的路径。</param>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage(
-            "Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
-        private void AddFilesFromPaths(IList<FileInfo> files, string[] paths)
-        {
-            var filePaths = new List<string>();
-            foreach (var path in paths)
-            {
-                if (File.Exists(path))
-                {
-                    filePaths.Add(Path.GetFullPath(path));
-                }
-                else if (Directory.Exists(path))
-                {
-                    try { filePaths.AddRange(Directory.GetFiles(path)); }
-                    catch (Exception) { }
-                }
-            }
-
-            foreach (var filePath in filePaths)
-            {
-                files.Add(new FileInfo(filePath));
+                this.Model.AddCompareFiles(paths);
             }
         }
     }
