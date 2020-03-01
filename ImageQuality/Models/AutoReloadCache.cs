@@ -6,7 +6,7 @@ namespace XstarS.ImageQuality.Models
     /// 表示一个可自动重载和回收的对象缓存。
     /// </summary>
     /// <typeparam name="T">要缓存的对象的类型，应为引用类型。</typeparam>
-    public sealed class AutoReloadCache<T> : IDisposable where T : class
+    internal sealed class AutoReloadCache<T> : IDisposable where T : class
     {
         /// <summary>
         /// 指示当前实例占用的资源是否已经被释放。

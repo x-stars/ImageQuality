@@ -13,17 +13,17 @@ namespace XstarS.ImageQuality.Models
         /// <summary>
         /// 单个像素的通道数量。
         /// </summary>
-        public static readonly int StdChannelCount = 4;
+        private const int ChCount = 3;
 
         /// <summary>
         /// 单个图像通道的最大值。
         /// </summary>
-        public static readonly int StdChannelPeek = 255;
+        private const int ChMaxValue = 255;
 
         /// <summary>
         /// 加载图像所用的像素格式。
         /// </summary>
-        public static readonly PixelFormat StdPixelFormat = PixelFormat.Format32bppArgb;
+        private const PixelFormat PxFormat = PixelFormat.Format24bppRgb;
 
         /// <summary>
         /// 指示当前实例占用的资源是否已经被释放。
@@ -63,8 +63,8 @@ namespace XstarS.ImageQuality.Models
                 () => this.TryLoadBitmap(this.SourceFile.FullName));
             this.CompareBitmapCache = new AutoReloadCache<Bitmap>(
                 () => this.TryLoadBitmap(this.CompareFile.FullName));
-            this.LazyPsnr = new Lazy<double>(this.CalculatePsnr);
-            this.LazySsim = new Lazy<double>(this.CalculateSsim);
+            this.LazyPsnr = new Lazy<double>(this.ComputePsnr);
+            this.LazySsim = new Lazy<double>(this.ComputeSsim);
         }
 
         /// <summary>
@@ -80,8 +80,8 @@ namespace XstarS.ImageQuality.Models
                 () => this.TryLoadBitmap(this.SourceFile.FullName));
             this.CompareBitmapCache = new AutoReloadCache<Bitmap>(
                 () => this.TryLoadBitmap(this.CompareFile.FullName));
-            this.LazyPsnr = new Lazy<double>(this.CalculatePsnr);
-            this.LazySsim = new Lazy<double>(this.CalculateSsim);
+            this.LazyPsnr = new Lazy<double>(this.ComputePsnr);
+            this.LazySsim = new Lazy<double>(this.ComputeSsim);
         }
 
         /// <summary>
@@ -145,11 +145,11 @@ namespace XstarS.ImageQuality.Models
         /// </summary>
         /// <returns> <see cref="ImagePair.SourceBitmap"/> 和
         /// <see cref="ImagePair.CompareBitmap"/> 之间的 PSNR。 </returns>
-        private unsafe double CalculatePsnr()
+        private unsafe double ComputePsnr()
         {
-            var channel = ImagePair.StdChannelCount;
-            var peak = ImagePair.StdChannelPeek;
-            var pxFormat = ImagePair.StdPixelFormat;
+            var chCount = ImagePair.ChCount;
+            var chMax = ImagePair.ChMaxValue;
+            var pxFormat = ImagePair.PxFormat;
             var source = this.SourceBitmap;
             var compare = this.CompareBitmap;
 
@@ -171,15 +171,15 @@ namespace XstarS.ImageQuality.Models
             {
                 for (int w = 0; w < size.Width; w++)
                 {
-                    for (int ch = 0; ch < channel; ch++)
+                    for (int ch = 0; ch < chCount; ch++)
                     {
-                        var error = (double)*(sourceChPtr++) - *(compareChPtr++);
+                        var error = (double)(*(sourceChPtr++) - *(compareChPtr++));
                         sError += error * error;
                     }
                 }
             }
-            var mse = sError / (size.Width * size.Height * channel);
-            var psnr = 10 * Math.Log10((peak * peak) / mse);
+            var mse = sError / (size.Width * size.Height * chCount);
+            var psnr = 10 * Math.Log10((chMax * chMax) / mse);
 
             source.UnlockBits(sourceData);
             compare.UnlockBits(compareData);
@@ -192,11 +192,11 @@ namespace XstarS.ImageQuality.Models
         /// </summary>
         /// <returns> <see cref="ImagePair.SourceBitmap"/> 和
         /// <see cref="ImagePair.CompareBitmap"/> 之间的 SSIM。 </returns>
-        private unsafe double CalculateSsim()
+        private unsafe double ComputeSsim()
         {
-            var channel = ImagePair.StdChannelCount;
-            var peak = ImagePair.StdChannelPeek;
-            var pxFormat = ImagePair.StdPixelFormat;
+            var chCount = ImagePair.ChCount;
+            var chMax = ImagePair.ChMaxValue;
+            var pxFormat = ImagePair.PxFormat;
             var source = this.SourceBitmap;
             var compare = this.CompareBitmap;
 
@@ -207,36 +207,36 @@ namespace XstarS.ImageQuality.Models
 
             var sourceData = source.LockBits(
                 new Rectangle(Point.Empty, size), ImageLockMode.ReadOnly, pxFormat);
-            var comapreData = compare.LockBits(
+            var compareData = compare.LockBits(
                 new Rectangle(Point.Empty, size), ImageLockMode.ReadOnly, pxFormat);
 
             var sourceChPtr = (byte*)sourceData.Scan0.ToPointer();
-            var compareChPtr = (byte*)comapreData.Scan0.ToPointer();
+            var compareChPtr = (byte*)compareData.Scan0.ToPointer();
 
             var k1 = 0.01;
             var k2 = 0.03;
-            var c1 = (k1 * peak) * (k1 * peak);
-            var c2 = (k2 * peak) * (k2 * peak);
+            var c1 = (k1 * chMax) * (k1 * chMax);
+            var c2 = (k2 * chMax) * (k2 * chMax);
             var c3 = c2 / 2;
 
-            double sSum = 0;
-            double cSum = 0;
+            var sSum = 0.0;
+            var cSum = 0.0;
             for (int h = 0; h < size.Height; h++)
             {
                 for (int w = 0; w < size.Width; w++)
                 {
-                    for (int ch = 0; ch < channel; ch++)
+                    for (int ch = 0; ch < chCount; ch++)
                     {
                         sSum += *(sourceChPtr++);
                         cSum += *(compareChPtr++);
                     }
                 }
             }
-            var sMiu = sSum / (size.Width * size.Height * channel);
-            var cMiu = cSum / (size.Width * size.Height * channel);
+            var sMiu = sSum / (size.Width * size.Height * chCount);
+            var cMiu = cSum / (size.Width * size.Height * chCount);
 
             sourceChPtr = (byte*)sourceData.Scan0.ToPointer();
-            compareChPtr = (byte*)comapreData.Scan0.ToPointer();
+            compareChPtr = (byte*)compareData.Scan0.ToPointer();
 
             var sVarSum = 0.0;
             var cVarSum = 0.0;
@@ -245,7 +245,7 @@ namespace XstarS.ImageQuality.Models
             {
                 for (int w = 0; w < size.Width; w++)
                 {
-                    for (int ch = 0; ch < channel; ch++)
+                    for (int ch = 0; ch < chCount; ch++)
                     {
                         var sError = *(sourceChPtr++) - sMiu;
                         var cError = *(compareChPtr++) - cMiu;
@@ -255,17 +255,17 @@ namespace XstarS.ImageQuality.Models
                     }
                 }
             }
-            var sSigma = Math.Sqrt(sVarSum / (size.Width * size.Height * channel - 1));
-            var cSigma = Math.Sqrt(cVarSum / (size.Width * size.Height * channel - 1));
-            var scSigma = covSum / (size.Width * size.Height * channel - 1);
+            var sSigma = Math.Sqrt(sVarSum / (size.Width * size.Height * chCount - 1));
+            var cSigma = Math.Sqrt(cVarSum / (size.Width * size.Height * chCount - 1));
+            var scSigma = covSum / (size.Width * size.Height * chCount - 1);
 
             var l = (2 * sMiu * cMiu + c1) / (sMiu * sMiu + cMiu * cMiu + c1);
-            double c = (2 * sSigma * cSigma + c2) / (sSigma * sSigma + cSigma * cSigma + c2);
-            double s = (scSigma + c3) / (sSigma * cSigma + c3);
-            double ssim = l * c * s;
+            var c = (2 * sSigma * cSigma + c2) / (sSigma * sSigma + cSigma * cSigma + c2);
+            var s = (scSigma + c3) / (sSigma * cSigma + c3);
+            var ssim = l * c * s;
 
             source.UnlockBits(sourceData);
-            compare.UnlockBits(comapreData);
+            compare.UnlockBits(compareData);
 
             return ssim;
         }
