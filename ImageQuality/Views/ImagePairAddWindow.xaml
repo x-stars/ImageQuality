@@ -4,8 +4,8 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:XstarS.ImageQuality.Views"
-        mc:Ignorable="d"
-        d:DataContext="{d:DesignInstance local:ImagePairAddWindowModel, IsDesignTimeCreatable=True}"
+        mc:Ignorable="d" d:DataContext="{d:DesignInstance local:ImagePairAddWindowModel,
+                                                          IsDesignTimeCreatable=True}"
         Width="480" Height="360" ResizeMode="NoResize" WindowStartupLocation="CenterOwner"
         Title="添加图像对">
     <Grid>
@@ -27,10 +27,10 @@
                     <DataGridTextColumn Header="文件大小" Binding="{Binding Length}"/>
                 </DataGrid.Columns>
             </DataGrid>
-            <DataGrid Grid.Column="1" Margin="2.5" ItemsSource="{Binding CompareFiles}"
+            <DataGrid Grid.Column="1" Margin="2.5" ItemsSource="{Binding TargetFiles}"
                       AutoGenerateColumns="False" CanUserResizeRows="False"
                       IsReadOnly="True" GridLinesVisibility="None" AllowDrop="True"
-                      DragEnter="CompareFileDataGrid_DragEnter" Drop="CompareFileDataGrid_Drop">
+                      DragEnter="TargetFileDataGrid_DragEnter" Drop="TargetFileDataGrid_Drop">
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="文件名" Binding="{Binding Name}"/>
                     <DataGridTextColumn Header="文件大小" Binding="{Binding Length}"/>

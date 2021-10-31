@@ -91,14 +91,14 @@ namespace XstarS.ImageQuality.Views
         {
             var imagePairs = this.ImagePairs;
             var csv = new StringBuilder();
-            var header = "Source,Compare,PSNR,SSIM";
+            var header = "Source,Traget,PSNR,SSIM";
             csv.AppendLine(header);
             foreach (var imagePair in imagePairs)
             {
                 var line = string.Join(",", new[]
                 {
                     $@"""{imagePair.SourceFile.Name}""",
-                    $@"""{imagePair.CompareFile.Name}""",
+                    $@"""{imagePair.TargetFile.Name}""",
                     imagePair.Psnr.ToString(),
                     imagePair.Ssim.ToString(),
                 });

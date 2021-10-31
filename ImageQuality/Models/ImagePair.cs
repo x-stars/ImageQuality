@@ -36,9 +36,9 @@ namespace XstarS.ImageQuality.Models
         private readonly AutoReloadCache<Bitmap> SourceBitmapCache;
 
         /// <summary>
-        /// <see cref="ImagePair.CompareBitmap"/> 的缓存值。
+        /// <see cref="ImagePair.TargetBitmap"/> 的缓存值。
         /// </summary>
-        private readonly AutoReloadCache<Bitmap> CompareBitmapCache;
+        private readonly AutoReloadCache<Bitmap> TargetBitmapCache;
 
         /// <summary>
         /// <see cref="ImagePair.Psnr"/> 的延迟初始化值。
@@ -54,15 +54,15 @@ namespace XstarS.ImageQuality.Models
         /// 使用参考图像和对比图像的路径初始化 <see cref="ImagePair"/> 类的新实例。
         /// </summary>
         /// <param name="sourcePath">参考图像文件的路径。</param>
-        /// <param name="comparePath">对比图像文件的路径。</param>
-        public ImagePair(string sourcePath, string comparePath)
+        /// <param name="targetPath">对比图像文件的路径。</param>
+        public ImagePair(string sourcePath, string targetPath)
         {
             this.SourceFile = this.TryLoadFile(sourcePath);
-            this.CompareFile = this.TryLoadFile(comparePath);
+            this.TargetFile = this.TryLoadFile(targetPath);
             this.SourceBitmapCache = new AutoReloadCache<Bitmap>(
                 () => this.TryLoadBitmap(this.SourceFile.FullName));
-            this.CompareBitmapCache = new AutoReloadCache<Bitmap>(
-                () => this.TryLoadBitmap(this.CompareFile.FullName));
+            this.TargetBitmapCache = new AutoReloadCache<Bitmap>(
+                () => this.TryLoadBitmap(this.TargetFile.FullName));
             this.LazyPsnr = new Lazy<double>(this.ComputePsnr);
             this.LazySsim = new Lazy<double>(this.ComputeSsim);
         }
@@ -71,15 +71,15 @@ namespace XstarS.ImageQuality.Models
         /// 使用参考图像和对比图像的文件信息初始化 <see cref="ImagePair"/> 类的新实例。
         /// </summary>
         /// <param name="sourceFile">参考图像的文件信息。</param>
-        /// <param name="compareFile">对比图像的文件信息。</param>
-        public ImagePair(FileInfo sourceFile, FileInfo compareFile)
+        /// <param name="targetFile">对比图像的文件信息。</param>
+        public ImagePair(FileInfo sourceFile, FileInfo targetFile)
         {
             this.SourceFile = sourceFile;
-            this.CompareFile = compareFile;
+            this.TargetFile = targetFile;
             this.SourceBitmapCache = new AutoReloadCache<Bitmap>(
                 () => this.TryLoadBitmap(this.SourceFile.FullName));
-            this.CompareBitmapCache = new AutoReloadCache<Bitmap>(
-                () => this.TryLoadBitmap(this.CompareFile.FullName));
+            this.TargetBitmapCache = new AutoReloadCache<Bitmap>(
+                () => this.TryLoadBitmap(this.TargetFile.FullName));
             this.LazyPsnr = new Lazy<double>(this.ComputePsnr);
             this.LazySsim = new Lazy<double>(this.ComputeSsim);
         }
@@ -92,7 +92,7 @@ namespace XstarS.ImageQuality.Models
         /// <summary>
         /// 获取当前图像对中对比图像的文件信息。
         /// </summary>
-        public FileInfo CompareFile { get; }
+        public FileInfo TargetFile { get; }
 
         /// <summary>
         /// 获取当前图像对中参考图像的位图对象。
@@ -102,7 +102,7 @@ namespace XstarS.ImageQuality.Models
         /// <summary>
         /// 获取当前图像对中对比图像的位图对象。
         /// </summary>
-        public Bitmap CompareBitmap => this.CompareBitmapCache.Value;
+        public Bitmap TargetBitmap => this.TargetBitmapCache.Value;
 
         /// <summary>
         /// 获取当前图像对的 PSNR。
@@ -144,27 +144,27 @@ namespace XstarS.ImageQuality.Models
         /// 计算当前图像对的 PSNR。
         /// </summary>
         /// <returns> <see cref="ImagePair.SourceBitmap"/> 和
-        /// <see cref="ImagePair.CompareBitmap"/> 之间的 PSNR。 </returns>
+        /// <see cref="ImagePair.TargetBitmap"/> 之间的 PSNR。 </returns>
         private unsafe double ComputePsnr()
         {
             var chCount = ImagePair.ChCount;
             var chMax = ImagePair.ChMaxValue;
             var pxFormat = ImagePair.PxFormat;
             var source = this.SourceBitmap;
-            var compare = this.CompareBitmap;
+            var target = this.TargetBitmap;
 
             var size = new Size(
-                Math.Min(source.Width, compare.Width), Math.Min(source.Height, compare.Height));
+                Math.Min(source.Width, target.Width), Math.Min(source.Height, target.Height));
             source = (source.Size != size) ? new Bitmap(source, size) : source;
-            compare = (compare.Size != size) ? new Bitmap(compare, size) : compare;
+            target = (target.Size != size) ? new Bitmap(target, size) : target;
 
             var sourceData = source.LockBits(
                 new Rectangle(Point.Empty, size), ImageLockMode.ReadOnly, pxFormat);
-            var compareData = compare.LockBits(
+            var targetData = target.LockBits(
                 new Rectangle(Point.Empty, size), ImageLockMode.ReadOnly, pxFormat);
 
             var sourceChPtr = (byte*)sourceData.Scan0.ToPointer();
-            var compareChPtr = (byte*)compareData.Scan0.ToPointer();
+            var targetChPtr = (byte*)targetData.Scan0.ToPointer();
 
             var sError = 0.0;
             for (int h = 0; h < size.Height; h++)
@@ -173,7 +173,7 @@ namespace XstarS.ImageQuality.Models
                 {
                     for (int ch = 0; ch < chCount; ch++)
                     {
-                        var error = (double)(*(sourceChPtr++) - *(compareChPtr++));
+                        var error = (double)(*(sourceChPtr++) - *(targetChPtr++));
                         sError += error * error;
                     }
                 }
@@ -182,7 +182,7 @@ namespace XstarS.ImageQuality.Models
             var psnr = 10 * Math.Log10((chMax * chMax) / mse);
 
             source.UnlockBits(sourceData);
-            compare.UnlockBits(compareData);
+            target.UnlockBits(targetData);
 
             return psnr;
         }
@@ -191,27 +191,27 @@ namespace XstarS.ImageQuality.Models
         /// 计算当前图像对的 SSIM。
         /// </summary>
         /// <returns> <see cref="ImagePair.SourceBitmap"/> 和
-        /// <see cref="ImagePair.CompareBitmap"/> 之间的 SSIM。 </returns>
+        /// <see cref="ImagePair.TargetBitmap"/> 之间的 SSIM。 </returns>
         private unsafe double ComputeSsim()
         {
             var chCount = ImagePair.ChCount;
             var chMax = ImagePair.ChMaxValue;
             var pxFormat = ImagePair.PxFormat;
             var source = this.SourceBitmap;
-            var compare = this.CompareBitmap;
+            var target = this.TargetBitmap;
 
             var size = new Size(
-                Math.Min(source.Width, compare.Width), Math.Min(source.Height, compare.Height));
+                Math.Min(source.Width, target.Width), Math.Min(source.Height, target.Height));
             source = (source.Size != size) ? new Bitmap(source, size) : source;
-            compare = (compare.Size != size) ? new Bitmap(compare, size) : compare;
+            target = (target.Size != size) ? new Bitmap(target, size) : target;
 
             var sourceData = source.LockBits(
                 new Rectangle(Point.Empty, size), ImageLockMode.ReadOnly, pxFormat);
-            var compareData = compare.LockBits(
+            var targetData = target.LockBits(
                 new Rectangle(Point.Empty, size), ImageLockMode.ReadOnly, pxFormat);
 
             var sourceChPtr = (byte*)sourceData.Scan0.ToPointer();
-            var compareChPtr = (byte*)compareData.Scan0.ToPointer();
+            var targetChPtr = (byte*)targetData.Scan0.ToPointer();
 
             var k1 = 0.01;
             var k2 = 0.03;
@@ -220,7 +220,7 @@ namespace XstarS.ImageQuality.Models
             var c3 = c2 / 2;
 
             var sSum = 0.0;
-            var cSum = 0.0;
+            var tSum = 0.0;
             for (int h = 0; h < size.Height; h++)
             {
                 for (int w = 0; w < size.Width; w++)
@@ -228,18 +228,18 @@ namespace XstarS.ImageQuality.Models
                     for (int ch = 0; ch < chCount; ch++)
                     {
                         sSum += *(sourceChPtr++);
-                        cSum += *(compareChPtr++);
+                        tSum += *(targetChPtr++);
                     }
                 }
             }
             var sMiu = sSum / (size.Width * size.Height * chCount);
-            var cMiu = cSum / (size.Width * size.Height * chCount);
+            var tMiu = tSum / (size.Width * size.Height * chCount);
 
             sourceChPtr = (byte*)sourceData.Scan0.ToPointer();
-            compareChPtr = (byte*)compareData.Scan0.ToPointer();
+            targetChPtr = (byte*)targetData.Scan0.ToPointer();
 
             var sVarSum = 0.0;
-            var cVarSum = 0.0;
+            var tVarSum = 0.0;
             var covSum = 0.0;
             for (int h = 0; h < size.Height; h++)
             {
@@ -248,24 +248,24 @@ namespace XstarS.ImageQuality.Models
                     for (int ch = 0; ch < chCount; ch++)
                     {
                         var sError = *(sourceChPtr++) - sMiu;
-                        var cError = *(compareChPtr++) - cMiu;
+                        var tError = *(targetChPtr++) - tMiu;
                         sVarSum += sError * sError;
-                        cVarSum += cError * cError;
-                        covSum += sError * cError;
+                        tVarSum += tError * tError;
+                        covSum += sError * tError;
                     }
                 }
             }
             var sSigma = Math.Sqrt(sVarSum / (size.Width * size.Height * chCount - 1));
-            var cSigma = Math.Sqrt(cVarSum / (size.Width * size.Height * chCount - 1));
-            var scSigma = covSum / (size.Width * size.Height * chCount - 1);
+            var tSigma = Math.Sqrt(tVarSum / (size.Width * size.Height * chCount - 1));
+            var stSigma = covSum / (size.Width * size.Height * chCount - 1);
 
-            var l = (2 * sMiu * cMiu + c1) / (sMiu * sMiu + cMiu * cMiu + c1);
-            var c = (2 * sSigma * cSigma + c2) / (sSigma * sSigma + cSigma * cSigma + c2);
-            var s = (scSigma + c3) / (sSigma * cSigma + c3);
+            var l = (2 * sMiu * tMiu + c1) / (sMiu * sMiu + tMiu * tMiu + c1);
+            var c = (2 * sSigma * tSigma + c2) / (sSigma * sSigma + tSigma * tSigma + c2);
+            var s = (stSigma + c3) / (sSigma * tSigma + c3);
             var ssim = l * c * s;
 
             source.UnlockBits(sourceData);
-            compare.UnlockBits(compareData);
+            target.UnlockBits(targetData);
 
             return ssim;
         }
@@ -289,7 +289,7 @@ namespace XstarS.ImageQuality.Models
                 if (disposing)
                 {
                     this.SourceBitmapCache.Dispose();
-                    this.CompareBitmapCache.Dispose();
+                    this.TargetBitmapCache.Dispose();
                 }
 
                 this.IsDisposed = true;

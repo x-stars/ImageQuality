@@ -4,8 +4,8 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:XstarS.ImageQuality.Views"
-        mc:Ignorable="d"
-        d:DataContext="{d:DesignInstance local:MainWindowModel, IsDesignTimeCreatable=True}"
+        mc:Ignorable="d" d:DataContext="{d:DesignInstance local:MainWindowModel,
+                                                          IsDesignTimeCreatable=True}"
         Width="600" Height="450" MinWidth="600" MinHeight="300"
         Title="图像质量评估">
     <Grid>
@@ -25,7 +25,7 @@
                       IsReadOnly="True" GridLinesVisibility="None" SelectionMode="Single">
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="参考图像" Binding="{Binding SourceFile.Name}"/>
-                    <DataGridTextColumn Header="对比图像" Binding="{Binding CompareFile.Name}"/>
+                    <DataGridTextColumn Header="对比图像" Binding="{Binding TargetFile.Name}"/>
                 </DataGrid.Columns>
             </DataGrid>
             <Grid Grid.Row="1">
@@ -64,7 +64,7 @@
                 <TextBlock Text="{Binding Ssim}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
             </Grid>
             <Image Grid.Row="2" Margin="2.5" Source="{Binding SourceFile.FullName}"/>
-            <Image Grid.Row="3" Margin="2.5" Source="{Binding CompareFile.FullName}"/>
+            <Image Grid.Row="3" Margin="2.5" Source="{Binding TargetFile.FullName}"/>
         </Grid>
     </Grid>
 </Window>

@@ -17,7 +17,7 @@ namespace XstarS.ImageQuality.Views
         public ImagePairAddWindowModel()
         {
             this.SourceFiles = new ObservableCollection<FileInfo>();
-            this.CompareFiles = new ObservableCollection<FileInfo>();
+            this.TargetFiles = new ObservableCollection<FileInfo>();
         }
 
         /// <summary>
@@ -28,7 +28,7 @@ namespace XstarS.ImageQuality.Views
         /// <summary>
         /// 获取当前窗口包含的对比图像文件的集合。
         /// </summary>
-        public ObservableCollection<FileInfo> CompareFiles { get; }
+        public ObservableCollection<FileInfo> TargetFiles { get; }
 
         /// <summary>
         /// 向参考图像文件的集合中添加指定路径包含的文件。
@@ -47,12 +47,12 @@ namespace XstarS.ImageQuality.Views
         /// 向对比图像文件的集合中添加指定路径包含的文件。
         /// </summary>
         /// <param name="paths">要添加的文件或目录的路径。</param>
-        public void AddCompareFiles(string[] paths)
+        public void AddTaregtFiles(string[] paths)
         {
             var filePaths = PathHelper.GetFilePaths(paths);
             foreach (var filePath in filePaths)
             {
-                this.CompareFiles.Add(new FileInfo(filePath));
+                this.TargetFiles.Add(new FileInfo(filePath));
             }
         }
 
@@ -63,12 +63,12 @@ namespace XstarS.ImageQuality.Views
         public ImagePair[] ToImagePairs()
         {
             var sourceFiles = this.SourceFiles;
-            var compareFiles = this.CompareFiles;
-            var length = Math.Min(sourceFiles.Count, compareFiles.Count);
+            var targetFiles = this.TargetFiles;
+            var length = Math.Min(sourceFiles.Count, targetFiles.Count);
             var imagePairs = new ImagePair[length];
             for (int i = 0; i < length; i++)
             {
-                imagePairs[i] = new ImagePair(sourceFiles[i], compareFiles[i]);
+                imagePairs[i] = new ImagePair(sourceFiles[i], targetFiles[i]);
             }
             return imagePairs;
         }

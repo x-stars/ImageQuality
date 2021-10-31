@@ -121,7 +121,7 @@ namespace XstarS.ImageQuality.Views
         /// </summary>
         /// <param name="sender">事件源。</param>
         /// <param name="e">提供事件数据的对象。</param>
-        private void CompareFileDataGrid_DragEnter(object sender, DragEventArgs e)
+        private void TargetFileDataGrid_DragEnter(object sender, DragEventArgs e)
         {
             if (e.Data.GetData(DataFormats.FileDrop) is string[])
             {
@@ -134,11 +134,11 @@ namespace XstarS.ImageQuality.Views
         /// </summary>
         /// <param name="sender">事件源。</param>
         /// <param name="e">提供事件数据的对象。</param>
-        private void CompareFileDataGrid_Drop(object sender, DragEventArgs e)
+        private void TargetFileDataGrid_Drop(object sender, DragEventArgs e)
         {
             if (e.Data.GetData(DataFormats.FileDrop) is string[] paths)
             {
-                this.Model.AddCompareFiles(paths);
+                this.Model.AddTaregtFiles(paths);
             }
         }
     }
