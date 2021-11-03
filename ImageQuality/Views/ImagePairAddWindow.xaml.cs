@@ -85,10 +85,10 @@ namespace XstarS.ImageQuality.Views
         }
 
         /// <summary>
-        /// 获取当前窗口包含的图像文件对应的 <see cref="ImagePair"/> 的数组。
+        /// 获取当前窗口包含的图像文件对应的 <see cref="PairedImageQuality"/> 的数组。
         /// </summary>
-        /// <returns>当前窗口包含的图像文件对应的 <see cref="ImagePair"/> 的数组。</returns>
-        public ImagePair[] GetImagePairs() => this.Model.ToImagePairs();
+        /// <returns>当前窗口包含的图像文件对应的 <see cref="PairedImageQuality"/> 的数组。</returns>
+        public PairedImageQuality[] GetImagePairs() => this.Model.ToImagePairs();
 
         /// <summary>
         /// 参考图像文件数据表拖放进入的事件处理。

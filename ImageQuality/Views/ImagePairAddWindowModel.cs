@@ -1,6 +1,6 @@
-﻿using System;
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.IO;
+using System.Linq;
 using XstarS.ImageQuality.Helpers;
 using XstarS.ImageQuality.Models;
 
@@ -57,20 +57,13 @@ namespace XstarS.ImageQuality.Views
         }
 
         /// <summary>
-        /// 将当前实例包含的图像文件的集合转换为 <see cref="ImagePair"/> 的数组。
+        /// 将当前实例包含的图像文件的集合转换为 <see cref="PairedImageQuality"/> 的数组。
         /// </summary>
-        /// <returns>转换得到的 <see cref="ImagePair"/> 的数组</returns>
-        public ImagePair[] ToImagePairs()
+        /// <returns>转换得到的 <see cref="PairedImageQuality"/> 的数组</returns>
+        public PairedImageQuality[] ToImagePairs()
         {
-            var sourceFiles = this.SourceFiles;
-            var targetFiles = this.TargetFiles;
-            var length = Math.Min(sourceFiles.Count, targetFiles.Count);
-            var imagePairs = new ImagePair[length];
-            for (int i = 0; i < length; i++)
-            {
-                imagePairs[i] = new ImagePair(sourceFiles[i], targetFiles[i]);
-            }
-            return imagePairs;
+            return Enumerable.Zip(this.SourceFiles, this.TargetFiles,
+                (source, target) => new PairedImageQuality(source, target)).ToArray();
         }
     }
 }

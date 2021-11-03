@@ -57,11 +57,11 @@
             </Grid.RowDefinitions>
             <Grid Grid.Row="0" Margin="2.5">
                 <TextBlock Text="PSNR" HorizontalAlignment="Left" VerticalAlignment="Center"/>
-                <TextBlock Text="{Binding Psnr}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                <TextBlock Text="{Binding [PSNR]}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
             </Grid>
             <Grid Grid.Row="1" Margin="2.5">
                 <TextBlock Text="SSIM" HorizontalAlignment="Left" VerticalAlignment="Center"/>
-                <TextBlock Text="{Binding Ssim}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                <TextBlock Text="{Binding [SSIM]}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
             </Grid>
             <Image Grid.Row="2" Margin="2.5" Source="{Binding SourceFile.FullName}"/>
             <Image Grid.Row="3" Margin="2.5" Source="{Binding TargetFile.FullName}"/>
