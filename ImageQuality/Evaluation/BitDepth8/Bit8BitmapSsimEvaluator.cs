@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Drawing;
+using System.Linq;
 
 namespace XstarS.ImageQuality.Evaluation.BitDepth8
 {
@@ -44,59 +45,94 @@ namespace XstarS.ImageQuality.Evaluation.BitDepth8
         /// <paramref name="pTarget"/> 指向的数据的图像质量 SSIM 指标。</returns>
         protected sealed override unsafe double EvaluateCore(byte* pSource, byte* pTarget, Size size)
         {
-            var channels = this.Channels;
-            var peakValue = this.PeakValue;
+            var length = size.Width * size.Height * this.Channels;
+            var partCount = (int)Math.Ceiling((double)length / this.PartLength);
 
+            var (sSum, tSum) = ParallelEnumerable.Range(0, partCount).Select(
+                partIndex =>
+                {
+                    var partOff = partIndex * this.PartLength;
+                    var partLen = partIndex == partCount - 1 ?
+                        (length - partOff) : this.PartLength;
+                    var pPartSource = pSource + partOff;
+                    var pPartTarget = pTarget + partOff;
+                    return this.SumAllValues(pPartSource, pPartTarget, partLen);
+                }
+            ).Aggregate((sum1, sum2) => (sum1.SSum + sum2.SSum, sum1.TSum + sum2.TSum));
+            var (sMiu, tMiu) = (sSum / length, tSum / length);
+
+            var (sVar, tVar, covar) = ParallelEnumerable.Range(0, partCount).Select(
+                partIndex =>
+                {
+                    var partOff = partIndex * this.PartLength;
+                    var partLen = partIndex == partCount - 1 ?
+                        (length - partOff) : this.PartLength;
+                    var pPartSource = pSource + partOff;
+                    var pPartTarget = pTarget + partOff;
+                    return this.CalcVariance(pPartSource, sMiu, pPartTarget, tMiu, partLen);
+                }
+            ).Aggregate((var1, var2) =>
+                (var1.SVar + var2.SVar, var1.TVar + var2.TVar, var1.Covar + var2.Covar));
+            var (sSigma, tSigma) = (Math.Sqrt(sVar / (length - 1)), Math.Sqrt(tVar / (length - 1)));
+            var stSigma = covar / (length - 1);
+
+            var peakValue = this.PeakValue;
             var k1 = this.K1;
             var k2 = this.K2;
             var c1 = (k1 * peakValue) * (k1 * peakValue);
             var c2 = (k2 * peakValue) * (k2 * peakValue);
             var c3 = c2 / 2;
 
-            var sSum = 0.0;
-            var tSum = 0.0;
-            var p0Source = pSource;
-            var p0Target = pTarget;
-            for (int h = 0; h < size.Height; h++)
-            {
-                for (int w = 0; w < size.Width; w++)
-                {
-                    for (int ch = 0; ch < channels; ch++)
-                    {
-                        sSum += *p0Source++;
-                        tSum += *p0Target++;
-                    }
-                }
-            }
-            var sMiu = sSum / (size.Width * size.Height * channels);
-            var tMiu = tSum / (size.Width * size.Height * channels);
-
-            var sVarSum = 0.0;
-            var tVarSum = 0.0;
-            var covSum = 0.0;
-            for (int h = 0; h < size.Height; h++)
-            {
-                for (int w = 0; w < size.Width; w++)
-                {
-                    for (int ch = 0; ch < channels; ch++)
-                    {
-                        var sError = *pSource++ - sMiu;
-                        var tError = *pTarget++ - tMiu;
-                        sVarSum += sError * sError;
-                        tVarSum += tError * tError;
-                        covSum += sError * tError;
-                    }
-                }
-            }
-            var sSigma = Math.Sqrt(sVarSum / ((size.Width * size.Height * channels) - 1));
-            var tSigma = Math.Sqrt(tVarSum / ((size.Width * size.Height * channels) - 1));
-            var stSigma = covSum / ((size.Width * size.Height * channels) - 1);
-
             var l = ((2 * sMiu * tMiu) + c1) / ((sMiu * sMiu) + (tMiu * tMiu) + c1);
             var c = ((2 * sSigma * tSigma) + c2) / ((sSigma * sSigma) + (tSigma * tSigma) + c2);
             var s = (stSigma + c3) / ((sSigma * tSigma) + c3);
             var ssim = l * c * s;
             return ssim;
+        }
+
+        /// <summary>
+        /// 计算当前位图分片的所有值之和。
+        /// </summary>
+        /// <param name="pSource">指向作为参考的位图数据的指针。</param>
+        /// <param name="pTarget">指向要进行比较的位图数据的指针。</param>
+        /// <param name="length">当前位图分片以字节为单位的大小。</param>
+        /// <returns><paramref name="pSource"/> 指向的数据之和以及
+        /// <paramref name="pTarget"/> 指向的数据之和组成的二元组。</returns>
+        protected virtual unsafe (double SSum, double TSum) SumAllValues(
+            byte* pSource, byte* pTarget, int length)
+        {
+            var (sSum, tSum) = (0.0, 0.0);
+            for (int offset = 0; offset < length; offset++)
+            {
+                sSum += pSource[offset];
+                tSum += pTarget[offset];
+            }
+            return (sSum, tSum);
+        }
+
+        /// <summary>
+        /// 计算当前位图分片的方差和协方差。
+        /// </summary>
+        /// <param name="pSource">指向作为参考的位图数据的指针。</param>
+        /// <param name="sMiu">作为参考的位图数据的平均值。</param>
+        /// <param name="pTarget">指向要进行比较的位图数据的指针。</param>
+        /// <param name="tMiu">要进行比较的位图数据的平均值。</param>
+        /// <param name="length">当前位图分片以字节为单位的大小。</param>
+        /// <returns><paramref name="pSource"/> 指向的数据的方差、<paramref name="pTarget"/> 指向的数据的方差以及
+        /// <paramref name="pSource"/> 和 <paramref name="pTarget"/> 指向的数据的协方差组成的三元组。</returns>
+        protected virtual unsafe (double SVar, double TVar, double Covar) CalcVariance(
+            byte* pSource, double sMiu, byte* pTarget, double tMiu, int length)
+        {
+            var (sVar, tVar, covar) = (0.0, 0.0, 0.0);
+            for (int offset = 0; offset < length; offset++)
+            {
+                var sDev = pSource[offset] - sMiu;
+                var tDev = pTarget[offset] - tMiu;
+                sVar += sDev * sDev;
+                tVar += tDev * tDev;
+                covar += sDev * tDev;
+            }
+            return (sVar, tVar, covar);
         }
     }
 }
