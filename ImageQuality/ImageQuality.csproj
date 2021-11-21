@@ -4,7 +4,7 @@
     <OutputType>WinExe</OutputType>
     <UseWPF>true</UseWPF>
     <RootNamespace>XstarS.$(AssemblyName)</RootNamespace>
-    <TargetFrameworks>net461;net472;netcoreapp3.1</TargetFrameworks>
+    <TargetFrameworks>net461;net472;netcoreapp3.1;net6.0-windows</TargetFrameworks>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <LangVersion>latest</LangVersion>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -45,14 +45,14 @@
     <DebugSymbols>false</DebugSymbols>
   </PropertyGroup>
 
-  <ItemGroup Condition="'$(TargetFramework.TrimEnd(`.0123456789`))'=='net' And
-                        '$(TargetFramework.CompareTo(`net5.0`))'&lt;'0'">
+  <ItemGroup Condition="'$(TargetFramework.Split(`-`)[0].TrimEnd(`.0123456789`))'=='net' And
+                        '$(TargetFramework.Split(`-`)[0].CompareTo(`net5.0`))'&lt;'0'">
     <Reference Include="System.Drawing" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFramework.TrimEnd(`.0123456789`))'=='netcoreapp' Or
-                        ('$(TargetFramework.TrimEnd(`.0123456789`))'=='net' And
-                         '$(TargetFramework.CompareTo(`net5.0`))'&gt;='0')">
+  <ItemGroup Condition="('$(TargetFramework.Split(`-`)[0].TrimEnd(`.0123456789`))'=='net' And
+                         '$(TargetFramework.Split(`-`)[0].CompareTo(`net5.0`))'&gt;='0') Or
+                        ('$(TargetFramework.TrimEnd(`.0123456789`))'=='netcoreapp')">
     <PackageReference Include="System.Drawing.Common" Version="4.7.0" />
   </ItemGroup>
 
