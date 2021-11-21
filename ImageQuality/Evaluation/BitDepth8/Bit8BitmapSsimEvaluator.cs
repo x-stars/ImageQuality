@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Drawing;
+using System.Drawing.Imaging;
 using System.Linq;
 
 namespace XstarS.ImageQuality.Evaluation.BitDepth8
@@ -20,19 +21,24 @@ namespace XstarS.ImageQuality.Evaluation.BitDepth8
         private readonly double K2;
 
         /// <summary>
-        /// 初始化 <see cref="Bit8BitmapSsimEvaluator"/> 类的新实例。
+        /// 使用指定的位图像素格式初始化 <see cref="Bit8BitmapSsimEvaluator"/> 类的新实例。
         /// </summary>
-        public Bit8BitmapSsimEvaluator() : this(0.01, 0.03) { }
+        /// <param name="format">位图像素模式。应为 8 位深度的像素格式。</param>
+        /// <exception cref="NotSupportedException">
+        /// <paramref name="format"/> 不表示有效的 8 位深度的像素格式。</exception>
+        public Bit8BitmapSsimEvaluator(PixelFormat format) : this(format, 0.01, 0.03) { }
 
         /// <summary>
         /// 以指定的参数初始化 <see cref="Bit8BitmapSsimEvaluator"/> 类的新实例。
         /// </summary>
+        /// <param name="format">位图像素模式。应为 8 位深度的像素格式。</param>
         /// <param name="k1">SSIM 的 <see langword="k1"/> 参数。</param>
         /// <param name="k2">SSIM 的 <see langword="k2"/> 参数。</param>
-        public Bit8BitmapSsimEvaluator(double k1, double k2)
+        /// <exception cref="NotSupportedException">
+        /// <paramref name="format"/> 不表示有效的 8 位深度的像素格式。</exception>
+        public Bit8BitmapSsimEvaluator(PixelFormat format, double k1, double k2) : base(format)
         {
-            this.K1 = k1;
-            this.K2 = k2;
+            (this.K1, this.K2) = (k1, k2);
         }
 
         /// <summary>

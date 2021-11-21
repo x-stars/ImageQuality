@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Drawing;
+using System.Drawing.Imaging;
 using System.Linq;
 
 namespace XstarS.ImageQuality.Evaluation.BitDepth8
@@ -10,9 +11,12 @@ namespace XstarS.ImageQuality.Evaluation.BitDepth8
     internal class Bit8BitmapPsnrEvaluator : Bit8BitmapEvaluator
     {
         /// <summary>
-        /// 初始化 <see cref="Bit8BitmapPsnrEvaluator"/> 类的新实例。
+        /// 使用指定的位图像素格式初始化 <see cref="Bit8BitmapPsnrEvaluator"/> 类的新实例。
         /// </summary>
-        public Bit8BitmapPsnrEvaluator() { }
+        /// <param name="format">位图像素模式。应为 8 位深度的像素格式。</param>
+        /// <exception cref="NotSupportedException">
+        /// <paramref name="format"/> 不表示有效的 8 位深度的像素格式。</exception>
+        public Bit8BitmapPsnrEvaluator(PixelFormat format) : base(format) { }
 
         /// <summary>
         /// 比较指定位图的字节数据，并返回图像质量 PSNR 指标。

@@ -7,9 +7,13 @@ namespace XstarS.ImageQuality.Evaluation.BitDepth8
     /// <summary>
     /// 提供以比较方式评估 8 位 RGB 位图图像质量的方法。
     /// </summary>
-    [CLSCompliant(false)]
-    public abstract class Bit8BitmapEvaluator : IBitmapEvaluator
+    internal abstract class Bit8BitmapEvaluator : IBitmapEvaluator
     {
+        /// <summary>
+        /// 表示加载位图图像所用的像素格式。
+        /// </summary>
+        protected readonly PixelFormat PxFormat;
+
         /// <summary>
         /// 表示位图中单个像素的通道数量。
         /// </summary>
@@ -21,41 +25,40 @@ namespace XstarS.ImageQuality.Evaluation.BitDepth8
         protected readonly int PeakValue;
 
         /// <summary>
-        /// 表示加载位图图像所用的像素格式。
-        /// </summary>
-        protected readonly PixelFormat PxFormat;
-
-        /// <summary>
         /// 表示单个位图分片建议使用的以字节为单位的大小。
         /// </summary>
         protected readonly int PartLength;
 
         /// <summary>
-        /// 初始化 <see cref="Bit8BitmapEvaluator"/> 类的新实例。
+        /// 使用指定的位图像素格式初始化 <see cref="Bit8BitmapEvaluator"/> 类的新实例。
         /// </summary>
-        protected Bit8BitmapEvaluator()
+        /// <param name="format">位图像素模式。应为 8 位深度的像素格式。</param>
+        /// <exception cref="NotSupportedException">
+        /// <paramref name="format"/> 不表示有效的 8 位深度的像素格式。</exception>
+        protected Bit8BitmapEvaluator(PixelFormat format)
         {
-            this.Channels = 3;
+            this.PxFormat = format;
+            this.Channels = Bit8BitmapEvaluator.GetChannels(format);
             this.PeakValue = byte.MaxValue;
-            this.PxFormat = PixelFormat.Format24bppRgb;
             this.PartLength = byte.MaxValue * byte.MaxValue * this.Channels;
         }
 
         /// <summary>
-        /// 创建计算指定评估指标的 <see cref="Bit8BitmapEvaluator"/> 类的实例。
+        /// 获取指定位图像素格式的单个像素的通道数量。
         /// </summary>
-        /// <param name="indicator">要使用的位图图像质量评估指标。</param>
-        /// <returns>计算 <paramref name="indicator"/> 表示的评估指标的
-        /// <see cref="Bit8BitmapEvaluator"/> 类的实例。</returns>
-        /// <exception cref="ArgumentOutOfRangeException">
-        /// <paramref name="indicator"/> 不为有效的枚举值。</exception>
-        public static Bit8BitmapEvaluator Create(EvaluationIndicator indicator) =>
-            indicator switch
-            {
-                EvaluationIndicator.PSNR => new Bit8BitmapPsnrEvaluator(),
-                EvaluationIndicator.SSIM => new Bit8BitmapSsimEvaluator(),
-                _ => throw new ArgumentOutOfRangeException(nameof(indicator))
-            };
+        /// <param name="format">位图像素模式。应为 8 位深度的像素格式。</param>
+        /// <returns><paramref name="format"/> 格式的单个像素的通道数量。</returns>
+        /// <exception cref="NotSupportedException">
+        /// <paramref name="format"/> 不表示有效的 8 位深度的像素格式。</exception>
+        protected static int GetChannels(PixelFormat format) => format switch
+        {
+            PixelFormat.Format8bppIndexed => 1,
+            PixelFormat.Format24bppRgb => 3,
+            PixelFormat.Format32bppRgb => 4,
+            PixelFormat.Format32bppArgb => 4,
+            PixelFormat.Format32bppPArgb => 4,
+            _ => throw new NotSupportedException()
+        };
 
         /// <summary>
         /// 以比较方式评估指定位图图像的质量，并返回图像质量指标。

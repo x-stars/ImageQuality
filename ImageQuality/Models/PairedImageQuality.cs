@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using XstarS.ImageQuality.Evaluation;
-using XstarS.ImageQuality.Evaluation.BitDepth8;
 using XstarS.ImageQuality.Helpers;
 
 namespace XstarS.ImageQuality.Models
@@ -92,7 +92,8 @@ namespace XstarS.ImageQuality.Models
         {
             using var sourceBitmap = PairedImageQuality.TryLoadBitmap(this.SourceFile.FullName);
             using var targetBitmap = PairedImageQuality.TryLoadBitmap(this.TargetFile.FullName);
-            return Bit8BitmapEvaluator.Create(indicator).Evaluate(sourceBitmap, targetBitmap);
+            var factory = BitmapEvaluatorFactory.GetDefault(PixelFormat.Format24bppRgb);
+            return factory.CreateEvaluator(indicator).Evaluate(sourceBitmap, targetBitmap);
         }
     }
 }
