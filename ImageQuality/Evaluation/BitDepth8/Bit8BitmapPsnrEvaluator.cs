@@ -1,17 +1,18 @@
 ﻿using System;
 using System.Drawing;
+using System.Linq;
 
-namespace XstarS.ImageQuality.Evaluation
+namespace XstarS.ImageQuality.Evaluation.BitDepth8
 {
     /// <summary>
     /// 提供评估 8 位 RGB 位图图像的峰值信噪比 (PSNR) 指标的方法。
     /// </summary>
-    internal sealed class Rgb8BitmapPsnrEvaluator : Rgb8BitmapEvaluator
+    internal class Bit8BitmapPsnrEvaluator : Bit8BitmapEvaluator
     {
         /// <summary>
-        /// 初始化 <see cref="Rgb8BitmapPsnrEvaluator"/> 类的新实例。
+        /// 初始化 <see cref="Bit8BitmapPsnrEvaluator"/> 类的新实例。
         /// </summary>
-        public Rgb8BitmapPsnrEvaluator() { }
+        public Bit8BitmapPsnrEvaluator() { }
 
         /// <summary>
         /// 比较指定位图的字节数据，并返回图像质量 PSNR 指标。
@@ -21,7 +22,7 @@ namespace XstarS.ImageQuality.Evaluation
         /// <param name="size">归一化后的位图图像的大小。</param>
         /// <returns>与 <paramref name="pSource"/> 指向的数据比较评估得到的
         /// <paramref name="pTarget"/> 指向的数据的图像质量 PSNR 指标。</returns>
-        protected override unsafe double EvaluateCore(byte* pSource, byte* pTarget, Size size)
+        protected sealed override unsafe double EvaluateCore(byte* pSource, byte* pTarget, Size size)
         {
             var channels = this.Channels;
             var peakValue = this.PeakValue;

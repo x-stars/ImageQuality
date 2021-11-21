@@ -1,33 +1,34 @@
 ﻿using System;
 using System.Drawing;
 
-namespace XstarS.ImageQuality.Evaluation
+namespace XstarS.ImageQuality.Evaluation.BitDepth8
 {
     /// <summary>
     /// 提供评估 8 位 RGB 位图图像的结构相似度 (SSIM) 指标的方法。
     /// </summary>
-    internal sealed class Rgb8BitmapSsimEvaluator : Rgb8BitmapEvaluator
+    internal class Bit8BitmapSsimEvaluator : Bit8BitmapEvaluator
     {
         /// <summary>
         /// 表示 SSIM 的 <see langword="k1"/> 参数。
         /// </summary>
         private readonly double K1;
+
         /// <summary>
         /// 表示 SSIM 的 <see langword="k2"/> 参数。
         /// </summary>
         private readonly double K2;
 
         /// <summary>
-        /// 初始化 <see cref="Rgb8BitmapSsimEvaluator"/> 类的新实例。
+        /// 初始化 <see cref="Bit8BitmapSsimEvaluator"/> 类的新实例。
         /// </summary>
-        public Rgb8BitmapSsimEvaluator() : this(0.01, 0.03) { }
+        public Bit8BitmapSsimEvaluator() : this(0.01, 0.03) { }
 
         /// <summary>
-        /// 以指定的参数初始化 <see cref="Rgb8BitmapSsimEvaluator"/> 类的新实例。
+        /// 以指定的参数初始化 <see cref="Bit8BitmapSsimEvaluator"/> 类的新实例。
         /// </summary>
         /// <param name="k1">SSIM 的 <see langword="k1"/> 参数。</param>
         /// <param name="k2">SSIM 的 <see langword="k2"/> 参数。</param>
-        public Rgb8BitmapSsimEvaluator(double k1, double k2)
+        public Bit8BitmapSsimEvaluator(double k1, double k2)
         {
             this.K1 = k1;
             this.K2 = k2;
@@ -41,7 +42,7 @@ namespace XstarS.ImageQuality.Evaluation
         /// <param name="size">归一化后的位图图像的大小。</param>
         /// <returns>与 <paramref name="pSource"/> 指向的数据比较评估得到的
         /// <paramref name="pTarget"/> 指向的数据的图像质量 SSIM 指标。</returns>
-        protected override unsafe double EvaluateCore(byte* pSource, byte* pTarget, Size size)
+        protected sealed override unsafe double EvaluateCore(byte* pSource, byte* pTarget, Size size)
         {
             var channels = this.Channels;
             var peakValue = this.PeakValue;

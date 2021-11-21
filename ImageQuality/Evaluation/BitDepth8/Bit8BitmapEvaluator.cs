@@ -2,13 +2,13 @@
 using System.Drawing;
 using System.Drawing.Imaging;
 
-namespace XstarS.ImageQuality.Evaluation
+namespace XstarS.ImageQuality.Evaluation.BitDepth8
 {
     /// <summary>
     /// 提供以比较方式评估 8 位 RGB 位图图像质量的方法。
     /// </summary>
     [CLSCompliant(false)]
-    public abstract class Rgb8BitmapEvaluator : IBitmapEvaluator
+    public abstract class Bit8BitmapEvaluator : IBitmapEvaluator
     {
         /// <summary>
         /// 表示位图中单个像素的通道数量。
@@ -26,28 +26,34 @@ namespace XstarS.ImageQuality.Evaluation
         protected readonly PixelFormat PxFormat;
 
         /// <summary>
-        /// 初始化 <see cref="Rgb8BitmapEvaluator"/> 类的新实例。
+        /// 表示单个位图分片建议使用的以字节为单位的大小。
         /// </summary>
-        protected Rgb8BitmapEvaluator()
+        protected readonly int PartLength;
+
+        /// <summary>
+        /// 初始化 <see cref="Bit8BitmapEvaluator"/> 类的新实例。
+        /// </summary>
+        protected Bit8BitmapEvaluator()
         {
             this.Channels = 3;
             this.PeakValue = byte.MaxValue;
             this.PxFormat = PixelFormat.Format24bppRgb;
+            this.PartLength = byte.MaxValue * byte.MaxValue * this.Channels;
         }
 
         /// <summary>
-        /// 创建计算指定评估指标的 <see cref="Rgb8BitmapEvaluator"/> 类的实例。
+        /// 创建计算指定评估指标的 <see cref="Bit8BitmapEvaluator"/> 类的实例。
         /// </summary>
         /// <param name="indicator">要使用的位图图像质量评估指标。</param>
         /// <returns>计算 <paramref name="indicator"/> 表示的评估指标的
-        /// <see cref="Rgb8BitmapEvaluator"/> 类的实例。</returns>
+        /// <see cref="Bit8BitmapEvaluator"/> 类的实例。</returns>
         /// <exception cref="ArgumentOutOfRangeException">
         /// <paramref name="indicator"/> 不为有效的枚举值。</exception>
-        public static Rgb8BitmapEvaluator Create(EvaluationIndicator indicator) =>
+        public static Bit8BitmapEvaluator Create(EvaluationIndicator indicator) =>
             indicator switch
             {
-                EvaluationIndicator.PSNR => new Rgb8BitmapPsnrEvaluator(),
-                EvaluationIndicator.SSIM => new Rgb8BitmapSsimEvaluator(),
+                EvaluationIndicator.PSNR => new Bit8BitmapPsnrEvaluator(),
+                EvaluationIndicator.SSIM => new Bit8BitmapSsimEvaluator(),
                 _ => throw new ArgumentOutOfRangeException(nameof(indicator))
             };
 

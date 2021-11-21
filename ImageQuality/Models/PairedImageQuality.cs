@@ -4,6 +4,7 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using XstarS.ImageQuality.Evaluation;
+using XstarS.ImageQuality.Evaluation.BitDepth8;
 using XstarS.ImageQuality.Helpers;
 
 namespace XstarS.ImageQuality.Models
@@ -91,7 +92,7 @@ namespace XstarS.ImageQuality.Models
         {
             using var sourceBitmap = PairedImageQuality.TryLoadBitmap(this.SourceFile.FullName);
             using var targetBitmap = PairedImageQuality.TryLoadBitmap(this.TargetFile.FullName);
-            return Rgb8BitmapEvaluator.Create(indicator).Evaluate(sourceBitmap, targetBitmap);
+            return Bit8BitmapEvaluator.Create(indicator).Evaluate(sourceBitmap, targetBitmap);
         }
     }
 }
